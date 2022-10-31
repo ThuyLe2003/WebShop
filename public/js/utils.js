@@ -185,7 +185,7 @@ const getProductCountFromCart = productId => {
 const getAllProductsFromCart = () => {
   return Object.keys(sessionStorage).reduce((array, str) => {
     const item = {
-      name: str,
+      id: str,
       amount: sessionStorage.getItem(str)
     };
     return [...array, item];
