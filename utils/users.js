@@ -82,7 +82,9 @@ const getUser = (email, password) => {
  */
 const getUserById = userId => {
   // TODO: 8.4 Find user by user id
-  throw new Error('Not Implemented');
+  const user = data.users.find(user => user._id === userId);
+  return user && {...user};
+  // throw new Error('Not Implemented');
 };
 
 /**
@@ -94,7 +96,15 @@ const getUserById = userId => {
 const deleteUserById = userId => {
   // TODO: 8.4 Delete user with a given id
   // Hint: Array's findIndex() with user ID can could be used to find the user, and Array's splice() method can be used to "extract" the user object.
-  throw new Error('Not Implemented');
+  const index = data.users.findIndex(user => user._id === userId);
+  if (index == -1) {
+    return undefined;
+  } else {
+    const user = data.users[index];
+    data.users.splice(index, 1);
+    return user && {...user};
+  }
+  // throw new Error('Not Implemented');
 };
 
 /**
@@ -143,7 +153,16 @@ const saveNewUser = user => {
  */
 const updateUserRole = (userId, role) => {
   // TODO: 8.4 Update user's role
-  throw new Error('Not Implemented');
+  const user = data.users.find(user => user._id === userId);
+  if (role !== "customer" && role !== "admin") {
+    throw new Error('Unknown role');
+  } else if (user !== undefined) {
+    user.role = role;
+    return user && {...user};
+  } else {
+    return undefined;
+  }  
+  // throw new Error('Not Implemented');
 };
 
 /**
