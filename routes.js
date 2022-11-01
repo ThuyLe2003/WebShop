@@ -1,7 +1,8 @@
 const responseUtils = require('./utils/responseUtils');
-const { acceptsJson, isJson, parseBodyJson } = require('./utils/requestUtils');
+const { acceptsJson, isJson, parseBodyJson, getCredentials } = require('./utils/requestUtils');
 const { renderPublic } = require('./utils/render');
-const { emailInUse, getAllUsers, saveNewUser, validateUser } = require('./utils/users');
+const { emailInUse, getAllUsers, saveNewUser, validateUser, getUser } = require('./utils/users');
+const { getCurrentUser } = require('./auth/auth');
 
 /**
  * Known API routes and their allowed methods
@@ -99,8 +100,26 @@ const handleRequest = async(request, response) => {
   // GET all users
   if (filePath === '/api/users' && method.toUpperCase() === 'GET') {
     // TODO: 8.5 Add authentication (only allowed to users with role "admin")
-    return responseUtils.sendJson(response, getAllUsers());
-  }
+    const authheader = request.headers.authorization;
+    if (! authheader | authheader == "") {
+      return responseUtils.basicAuthChallenge(response);
+    } else {
+        const info = getCredentials(request);
+        if (info.length !== 2) {
+          return responseUtils.basicAuthChallenge(response);
+        } else {
+          const user = getUser(info[0], info[1]);
+          if (user === undefined) {
+            return responseUtils.basicAuthChallenge(response);
+          } else if (user.role !== "admin") {
+            return responseUtils.forbidden(response);
+          } else {
+          return responseUtils.sendJson(response, getAllUsers());
+          }
+        }
+      }
+    }
+  
 
   // register new user
   if (filePath === '/api/register' && method.toUpperCase() === 'POST') {

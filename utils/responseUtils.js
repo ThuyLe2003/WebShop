@@ -3,7 +3,9 @@ const basicAuthChallenge = response => {
   // See:
   // https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication#the_general_http_authentication_framework
   // The first step of the challenge and response flow  as described on the webpage is done here. 
-  throw new Error('Not Implemented');
+  response.writeHead(401, {'WWW-Authenticate': 'Basic'});
+  response.end();
+  // throw new Error('Not Implemented');
 };
 
 const sendJson = (response, payload, code = 200) => {
