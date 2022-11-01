@@ -92,11 +92,11 @@ const handleRequest = async(request, response) => {
         const view = getUserById(id);
         if (view === undefined) {
           return responseUtils.notFound(response);
-        };
+        }
 
         if (user.role !== "admin") {
           return responseUtils.forbidden(response);
-        };
+        }
 
         if (method.toUpperCase() === 'GET') {
             return responseUtils.sendJson(response, view);
@@ -113,7 +113,7 @@ const handleRequest = async(request, response) => {
           
         } else if (method.toUpperCase() === 'DELETE') {
           const userDeleted = deleteUserById(id);
-          if (userDeleted == null) {
+          if (userDeleted === null) {
             return responseUtils.notFound(response);
           } else {
             return responseUtils.sendJson(response, userDeleted);
@@ -148,7 +148,7 @@ const handleRequest = async(request, response) => {
   if (filePath === '/api/users' && method.toUpperCase() === 'GET') {
     // TODO: 8.5 Add authentication (only allowed to users with role "admin")
     const authheader = request.headers.authorization;
-    if (! authheader | authheader == "") {
+    if (! authheader | authheader === "") {
       return responseUtils.basicAuthChallenge(response);
     } else {
         const info = getCredentials(request);

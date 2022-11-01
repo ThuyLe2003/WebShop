@@ -97,7 +97,7 @@ const deleteUserById = userId => {
   // TODO: 8.4 Delete user with a given id
   // Hint: Array's findIndex() with user ID can could be used to find the user, and Array's splice() method can be used to "extract" the user object.
   const index = data.users.findIndex(user => user._id === userId);
-  if (index == -1) {
+  if (index === -1) {
     return undefined;
   } else {
     const user = data.users[index];
