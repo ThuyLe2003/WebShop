@@ -1,7 +1,7 @@
 const responseUtils = require('./utils/responseUtils');
 const { acceptsJson, isJson, parseBodyJson, getCredentials } = require('./utils/requestUtils');
 const { renderPublic } = require('./utils/render');
-const { emailInUse, getAllUsers, saveNewUser, validateUser, getUser } = require('./utils/users');
+const { emailInUse, getAllUsers, saveNewUser, validateUser, getUser, getUserById, updateUserRole, deleteUserById } = require('./utils/users');
 const { getCurrentUser } = require('./auth/auth');
 
 /**
@@ -78,7 +78,54 @@ const handleRequest = async(request, response) => {
     // - getUserById(userId) from /utils/users.js
     // - notFound(response) from  /utils/responseUtils.js 
     // - sendJson(response,  payload)  from  /utils/responseUtils.js can be used to send the requested data in JSON format
-    throw new Error('Not Implemented');
+    const id = url.split("/")[3];
+    const authheader = request.headers.authorization;
+
+    if (! authheader) {
+    return responseUtils.basicAuthChallenge(response);
+    } else {
+      const info = getCredentials(request);
+      const user = getUser(info[0], info[1]);
+      if (user === undefined) {
+        return responseUtils.basicAuthChallenge(response);
+      } else {
+        const view = getUserById(id);
+        if (view === undefined) {
+          return responseUtils.notFound(response);
+        };
+
+        if (user.role !== "admin") {
+          return responseUtils.forbidden(response);
+        };
+
+        if (method.toUpperCase() === 'GET') {
+            return responseUtils.sendJson(response, view);
+        
+        } else if (method.toUpperCase() === 'PUT') {
+           const userChangeRole = await parseBodyJson(request);
+           const roleToChange = userChangeRole.role;
+           if ((roleToChange === "customer" | roleToChange === "admin")) {
+            updateUserRole(id, roleToChange);
+            return responseUtils.sendJson(response, getUserById(id));
+           } else {
+            return responseUtils.badRequest(response, 'Missing or unvalid role');
+           }
+          
+        } else if (method.toUpperCase() === 'DELETE') {
+          const userDeleted = deleteUserById(id);
+          if (userDeleted == null) {
+            return responseUtils.notFound(response);
+          } else {
+            return responseUtils.sendJson(response, userDeleted);
+          }
+          
+        } else if (method.toUpperCase() === "OPTIONS") {
+            return sendOptions(filePath, response);
+          }
+      }
+    }
+    
+    // throw new Error('Not Implemented');
   }
 
   // Default to 404 Not Found if unknown url

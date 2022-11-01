@@ -70,7 +70,21 @@ const postOrPutJSON = async(url, method, data = {}) => {
  */
 const deleteResource = async url => {
   // TODO: 8.6 Implement this
-  throw new Error('Not Implemented');
+  const response = await fetch(url, {
+    method: "DELETE",
+    credentials: 'same-origin',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+
+  if (!response.ok) throw new Error('Network response was not OK');
+  if (response.status < 200 || response.status > 400) {
+    throw new Error(`Received "${response.status} ${response.statusText}"`);
+  }
+
+  return await response.json();
+  // throw new Error('Not Implemented');
 };
 
 /**
