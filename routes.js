@@ -12,7 +12,8 @@ const { getCurrentUser } = require('./auth/auth');
  */
 const allowedMethods = {
   '/api/register': ['POST'],
-  '/api/users': ['GET']
+  '/api/users': ['GET'],
+  '/api/products': ['GET']
 };
 
 /**
@@ -196,6 +197,29 @@ const handleRequest = async(request, response) => {
       }
     });
     // throw new Error('Not Implemented');
+
+    // GET all products (only allowed for authenticated user)
+  if (filePath === '/api/products' && method.toUpperCase() === 'GET') {
+    // TODO: 8.5 Add authentication (only allowed to users with role "admin")
+    const authheader = request.headers.authorization;
+    if (! authheader | authheader === "") {
+      return responseUtils.basicAuthChallenge(response);
+    } else {
+        const info = getCredentials(request);
+        if (info.length !== 2) {
+          return responseUtils.basicAuthChallenge(response);
+        } else {
+          const user = getUser(info[0], info[1]);
+          if (user === undefined) {
+            return responseUtils.basicAuthChallenge(response);
+          } else if (user.role !== "admin") {
+            return responseUtils.forbidden(response);
+          } else {
+          return responseUtils.sendJson(response, getAllUsers());
+          }
+        }
+      }
+    }
   }
 };
 
