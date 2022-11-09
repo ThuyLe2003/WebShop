@@ -32,7 +32,11 @@ const userSchema = new Schema({
   // and the following validators:
   // required, trim, minlength, maxlength 
   name: {
-
+    type: String,
+    required: true,
+    trim: true,
+    minLength: SCHEMA_DEFAULTS.name.minLength,
+    maxLength: SCHEMA_DEFAULTS.name.maxLength
   },
   // for 'email'
   // set type
@@ -44,7 +48,11 @@ const userSchema = new Schema({
 
   //       
   email: {
-
+    type: String,
+    required: true,
+    unique: true,
+    trim: true,
+    match: SCHEMA_DEFAULTS.email.match
   },
   // for 'password'
   // set type
@@ -57,14 +65,25 @@ const userSchema = new Schema({
   // }
   // 
   password: {
-
+    type: String,
+    required: true,
+    minLength: SCHEMA_DEFAULTS.password.minLength,
+    set: password => {
+      if (password.length < 10) return password;
+      return bcrypt.hashSync(password, SALT_ROUNDS);
+    }
   },
   // for 'role'
   // set type
   // and the following validators:
   //  required, trim, lowercase, enum,    default
   role: {
-
+    type: String,
+    required: true,
+    trim: true,
+    lowercase: true,
+    enum: SCHEMA_DEFAULTS.role.values,
+    default: SCHEMA_DEFAULTS.role.defaultValue
   }
 });
 
@@ -83,6 +102,7 @@ userSchema.methods.checkPassword = async function(password) {
   //      - password as given as parameter to the call to this method
   //      - the password of the user from the User model (this.password). 
   //          Here we see one of the few places where we need to use 'this' keyword.
+  return await bcrypt.compare(password, this.password);
 };
 
 // Omit the version key when serialized to JSON
