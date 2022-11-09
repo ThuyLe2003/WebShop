@@ -13,6 +13,7 @@ const decreaseCount = productId => {
   const count = decreaseProductCount(productId);
   if (count === 0) {
     removeElement("cart-container", productId);
+    document.location.reload(true);
   } else {updateProductAmount(productId)};
 
 };
@@ -35,8 +36,13 @@ const placeOrder = async() => {
   for(let product in products) {
     removeElement("cart-container", product.id);
   };
+  clearCart();
   createNotification("Successfully created an order!", "notifications-container");
 }
+
+document.getElementById("place-order-button").addEventListener("click", () => {
+  placeOrder().then(document.location.reload());
+});
 
 (async() => {
   // TODO 9.2
@@ -95,7 +101,5 @@ const placeOrder = async() => {
 
       containerId.appendChild(prod);
     }); 
-
-    // document.getElementById("place-order-button").addEventListener("click", placeOrder().then(clearCart()));
   }); 
 })();
