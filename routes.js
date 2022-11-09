@@ -13,8 +13,14 @@ const { getCurrentUser } = require('./auth/auth');
 const allowedMethods = {
   '/api/register': ['POST'],
   '/api/users': ['GET'],
-  '/api/products': ['GET']
+  '/api/products': ['GET'],
+  '/api/cart' : ['GET']
 };
+
+/**
+ * Use this object to store products
+ */
+const products = require('./products.json').map(product => ({...product }));
 
 /**
  * Send response to client options request.
@@ -129,6 +135,8 @@ const handleRequest = async(request, response) => {
     // throw new Error('Not Implemented');
   }
 
+
+
   // Default to 404 Not Found if unknown url
   if (!(filePath in allowedMethods)) return responseUtils.notFound(response);
 
@@ -148,26 +156,17 @@ const handleRequest = async(request, response) => {
   // GET all users
   if (filePath === '/api/users' && method.toUpperCase() === 'GET') {
     // TODO: 8.5 Add authentication (only allowed to users with role "admin")
-    const authheader = request.headers.authorization;
-    if (! authheader | authheader === "") {
-      return responseUtils.basicAuthChallenge(response);
-    } else {
-        const info = getCredentials(request);
-        if (info.length !== 2) {
-          return responseUtils.basicAuthChallenge(response);
-        } else {
-          const user = getUser(info[0], info[1]);
-          if (user === undefined) {
-            return responseUtils.basicAuthChallenge(response);
-          } else if (user.role !== "admin") {
-            return responseUtils.forbidden(response);
-          } else {
-          return responseUtils.sendJson(response, getAllUsers());
+    getCurrentUser(request).then(user => {
+      if (user === null) {
+        return responseUtils.basicAuthChallenge(response);
+      } else if (user.role !== "admin") {
+              return responseUtils.forbidden(response);
+            } else {
+            return responseUtils.sendJson(response, getAllUsers());
+            }
           }
-        }
-      }
-    }
-  
+    );
+  }  
 
   // register new user
   if (filePath === '/api/register' && method.toUpperCase() === 'POST') {
@@ -197,30 +196,18 @@ const handleRequest = async(request, response) => {
       }
     });
     // throw new Error('Not Implemented');
-
-    // GET all products (only allowed for authenticated user)
-  if (filePath === '/api/products' && method.toUpperCase() === 'GET') {
-    // TODO: 8.5 Add authentication (only allowed to users with role "admin")
-    const authheader = request.headers.authorization;
-    if (! authheader | authheader === "") {
-      return responseUtils.basicAuthChallenge(response);
-    } else {
-        const info = getCredentials(request);
-        if (info.length !== 2) {
-          return responseUtils.basicAuthChallenge(response);
-        } else {
-          const user = getUser(info[0], info[1]);
-          if (user === undefined) {
-            return responseUtils.basicAuthChallenge(response);
-          } else if (user.role !== "admin") {
-            return responseUtils.forbidden(response);
-          } else {
-          return responseUtils.sendJson(response, getAllUsers());
-          }
-        }
-      }
-    }
   }
+
+  // GET all products (only allowed for authenticated user)
+  if ((filePath === '/api/products' | filePath === '/api/cart') && method === 'GET') {
+    getCurrentUser(request).then(user => {
+      if (user === null) {
+        return responseUtils.basicAuthChallenge(response);
+      } else {
+        return responseUtils.sendJson(response, products);
+      }
+    })
+    }
 };
 
 module.exports = { handleRequest };

@@ -2,12 +2,18 @@ const addToCart = productId => {
   // TODO 9.2
   // use addProductToCart(), available already from /public/js/utils.js
   // call updateProductAmount(productId) from this file
+  addProductToCart(productId);
+  updateProductAmount(productId);
 };
 
 const decreaseCount = productId => {
   // TODO 9.2
   // Decrease the amount of products in the cart, /public/js/utils.js provides decreaseProductCount()
-  // Remove product from cart if amount is 0,  /public/js/utils.js provides removeElement = (containerId, elementId
+  // Remove product from cart if amount is 0,  /public/js/utils.js provides removeElement = (containerId, elementId)
+  const count = decreaseProductCount(productId);
+  if (count === 0) {
+    removeElement("cart-container", productId);
+  } else {updateProductAmount(productId)};
 
 };
 
@@ -15,6 +21,8 @@ const updateProductAmount = productId => {
   // TODO 9.2
   // - read the amount of products in the cart, /public/js/utils.js provides getProductCountFromCart(productId)
   // - change the amount of products shown in the right element's innerText
+  let count = getProductCountFromCart(productId);
+  document.getElementById(`amount-${productId}`).innerText = `${count}x`;
 
 };
 
@@ -23,7 +31,12 @@ const placeOrder = async() => {
   // Get all products from the cart, /public/js/utils.js provides getAllProductsFromCart()
   // show the user a notification: /public/js/utils.js provides createNotification = (message, containerId, isSuccess = true)
   // for each of the products in the cart remove them, /public/js/utils.js provides removeElement(containerId, elementId)
-};
+  let products = getAllProductsFromCart();
+  for(let product in products) {
+    removeElement("cart-container", product.id);
+  };
+  createNotification("Successfully created an order!", "notifications-container");
+}
 
 (async() => {
   // TODO 9.2
@@ -48,6 +61,41 @@ const placeOrder = async() => {
   //          clone.querySelector('button').id = `add-to-cart-${prodouctId}`;
   //          clone.querySelector('button').addEventListener('click', () => addToCart(productId, productName));
   //
-  // - in the end remember to append the modified cart item to the cart 
+  // - in the end remember to append the modified cart item to the cart
+  const containerId = document.getElementById("cart-container");
+  const template = document.getElementById("cart-item-template");
 
+  // createNotification(getAllProductsFromCart()[1].id, "notifications-container");
+
+  getJSON("/api/cart").then((listProd) => {
+    const products = getAllProductsFromCart();
+    
+    products.forEach(item => {
+      const prod = template.content.cloneNode(true);
+      prod.id = item.id;
+
+      const product = listProd.find(element => element._id === item.id);
+
+      prod.querySelector('.product-name').textContent = product.name;
+      prod.querySelector('.product-name').id = `name-${item.id}`;
+
+      prod.querySelector('.product-price').innerText = product.price;
+      prod.querySelector('.product-price').id = `price-${item.id}`;
+    
+      prod.querySelector('.product-amount').innerText = `${item.amount}x`;
+      prod.querySelector('.product-amount').id = `amount-${item.id}`;
+
+      prod.querySelectorAll('.cart-minus-plus-button')[0].id = `plus-${item.id}`;
+      prod.querySelectorAll('.cart-minus-plus-button')[0].addEventListener('click', () => addToCart(item.id, product.name));
+
+      prod.querySelectorAll('.cart-minus-plus-button')[1].id = `minus-${item.id}`;
+      prod.querySelectorAll('.cart-minus-plus-button')[1].addEventListener('click', () => {
+        decreaseCount(item.id, product.name);
+      });
+
+      containerId.appendChild(prod);
+    }); 
+
+    // document.getElementById("place-order-button").addEventListener("click", placeOrder().then(clearCart()));
+  }); 
 })();
