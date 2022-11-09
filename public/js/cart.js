@@ -95,9 +95,7 @@ document.getElementById("place-order-button").addEventListener("click", () => {
       prod.querySelectorAll('.cart-minus-plus-button')[0].addEventListener('click', () => addToCart(item.id, product.name));
 
       prod.querySelectorAll('.cart-minus-plus-button')[1].id = `minus-${item.id}`;
-      prod.querySelectorAll('.cart-minus-plus-button')[1].addEventListener('click', () => {
-        decreaseCount(item.id, product.name);
-      });
+      prod.querySelectorAll('.cart-minus-plus-button')[1].addEventListener('click', () => {decreaseCount(item.id, product.name)});
 
       containerId.appendChild(prod);
     }); 
