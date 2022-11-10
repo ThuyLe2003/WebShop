@@ -1,8 +1,31 @@
 const responseUtils = require('./utils/responseUtils');
 const { acceptsJson, isJson, parseBodyJson, getCredentials } = require('./utils/requestUtils');
 const { renderPublic } = require('./utils/render');
-const { emailInUse, getAllUsers, saveNewUser, validateUser, getUser, getUserById, updateUserRole, deleteUserById } = require('./utils/users');
 const { getCurrentUser } = require('./auth/auth');
+const User = require('./models/user');
+const http = require("http");
+
+const roles = ["customer", "admin"];
+
+/**
+ * Validate user object (Very simple and minimal validation)
+ *
+ * This function can be used to validate that user has all required
+ * fields before saving it.
+ *
+ * @param {Object} user user object to be validated
+ * @returns {Array<string>} Array of error messages or empty array if user is valid. 
+ */
+ const validateUser = user => {
+  const errors = [];
+
+  if (!user.name) errors.push('Missing name');
+  if (!user.email) errors.push('Missing email');
+  if (!user.password) errors.push('Missing password');
+  if (user.role && !roles.includes(user.role)) errors.push('Unknown role');
+
+  return errors;
+};
 
 /**
  * Known API routes and their allowed methods
@@ -12,7 +35,7 @@ const { getCurrentUser } = require('./auth/auth');
  */
 const allowedMethods = {
   '/api/register': ['POST'],
-  '/api/users': ['GET'],
+  '/api/users': ['GET', 'PUT', 'DELETE'],
   '/api/products': ['GET'],
   '/api/cart' : ['GET']
 };
@@ -65,6 +88,49 @@ const matchUserId = url => {
   return matchIdRoute(url, 'users');
 };
 
+/**
+ * Check if the user is authorized and valid in the database
+ *
+ * @param {http.ServerRequest} request  The incoming request with user information
+ * @param {http.ServerResponse} response The response that will be eddited and send to user
+ * @param {boolean} checkCustomer flag to see if checking the customer is needed
+ * @returns {http.ServerResponse} Base on the request, the user receive the equivalent response.
+ */
+const checkHeader = async (request, response, checkCustomer) => {
+  const authorizationHeader = request.headers["authorization"];
+  const currentUser = await getCurrentUser(request);
+  // response with basic auth challenge & 401 Unauthorized if auth header is missing
+  if (!authorizationHeader) {
+    response.setHeader("WWW-Authenticate", "Basic");
+    return responseUtils.unauthorized(response);
+  }
+  if (authorizationHeader === undefined || authorizationHeader === " ") {
+    // response with basic auth challenge if auth header is missing/empty
+    return responseUtils.basicAuthChallenge(response);
+  }
+
+  if (currentUser === null) {
+    // response with basic auth challenge if credentials are incorrect
+    return responseUtils.basicAuthChallenge(response);
+  }
+
+  // check if the auth header is properly encoded
+  const credentials = authorizationHeader.split(" ")[1];
+  const base64regex =
+    /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
+  // response with basic auth challenge if auth header is not properly encoded
+  if (!base64regex.test(credentials)) {
+    return responseUtils.basicAuthChallenge(response);
+  }
+
+  if (checkCustomer && currentUser.role === "customer") {
+    return responseUtils.forbidden(response);
+  }
+
+  return null;
+};
+
+
 const handleRequest = async(request, response) => {
   const { url, method, headers } = request;
   const filePath = new URL(url, `http://${headers.host}`).pathname;
@@ -76,67 +142,44 @@ const handleRequest = async(request, response) => {
   }
 
   if (matchUserId(filePath)) {
-    // TODO: 8.6 Implement view, update and delete a single user by ID (GET, PUT, DELETE)
+    // Implement view, update and delete a single user by ID (GET, PUT, DELETE)
     // You can use parseBodyJson(request) from utils/requestUtils.js to parse request body
     // If the HTTP method of a request is OPTIONS you can use sendOptions(filePath, response) function from this module
     // If there is no currently logged in user, you can use basicAuthChallenge(response) from /utils/responseUtils.js to ask for credentials
     //  If the current user's role is not admin you can use forbidden(response) from /utils/responseUtils.js to send a reply
-    // Useful methods here include:
-    // - getUserById(userId) from /utils/users.js
-    // - notFound(response) from  /utils/responseUtils.js 
-    // - sendJson(response,  payload)  from  /utils/responseUtils.js can be used to send the requested data in JSON format
     const id = url.split("/")[3];
-    const authheader = request.headers.authorization;
-
-    if (! authheader) {
-    return responseUtils.basicAuthChallenge(response);
-    } else {
-      const info = getCredentials(request);
-      const user = getUser(info[0], info[1]);
-      if (user === undefined) {
-        return responseUtils.basicAuthChallenge(response);
-      } else {
-        const view = getUserById(id);
-        if (view === undefined) {
-          return responseUtils.notFound(response);
-        }
-
-        if (user.role !== "admin") {
-          return responseUtils.forbidden(response);
-        }
-
-        if (method.toUpperCase() === 'GET') {
-            return responseUtils.sendJson(response, view);
-        
-        } else if (method.toUpperCase() === 'PUT') {
-           const userChangeRole = await parseBodyJson(request);
-           const roleToChange = userChangeRole.role;
-           if ((roleToChange === "customer" | roleToChange === "admin")) {
-            updateUserRole(id, roleToChange);
-            return responseUtils.sendJson(response, getUserById(id));
-           } else {
-            return responseUtils.badRequest(response, 'Missing or unvalid role');
-           }
-          
-        } else if (method.toUpperCase() === 'DELETE') {
-          const userDeleted = deleteUserById(id);
-          if (userDeleted === null) {
-            return responseUtils.notFound(response);
-          } else {
-            return responseUtils.sendJson(response, userDeleted);
-          }
-          
-        } else if (method.toUpperCase() === "OPTIONS") {
-            return sendOptions(filePath, response);
-          }
-      }
+    const headerCheck = await checkHeader(request, response, true);
+    if (headerCheck !== null) {
+      return headerCheck;
     }
-    
-    // throw new Error('Not Implemented');
+    const view = await User.findById(id).exec();
+    if (view === null) {
+      return responseUtils.notFound(response);
+    }
+
+    if (method.toUpperCase() === 'GET') {
+      return responseUtils.sendJson(response, view);
+        
+    } else if (method.toUpperCase() === 'PUT') {
+      const userChangeRole = await parseBodyJson(request);
+      const roleToChange = userChangeRole.role;
+      if (roles.includes(roleToChange)) {
+        view.role = roleToChange;
+        await view.save();
+        return responseUtils.sendJson(response, view);
+      } else {
+        return responseUtils.badRequest(response, 'Missing or unvalid role');
+      }
+          
+    } else if (method.toUpperCase() === 'DELETE') {
+      await User.deleteOne({_id: id});
+      return responseUtils.sendJson(response, view);
+          
+    } else if (method.toUpperCase() === "OPTIONS") {
+      return sendOptions(filePath, response);
+    }
   }
-
-
-
+    
   // Default to 404 Not Found if unknown url
   if (!(filePath in allowedMethods)) return responseUtils.notFound(response);
 
@@ -155,14 +198,16 @@ const handleRequest = async(request, response) => {
 
   // GET all users
   if (filePath === '/api/users' && method.toUpperCase() === 'GET') {
-    // TODO: 8.5 Add authentication (only allowed to users with role "admin")
+    // Add authentication (only allowed to users with role "admin")
+    const users = await User.find({});
+
     getCurrentUser(request).then(user => {
       if (user === null) {
         return responseUtils.basicAuthChallenge(response);
       } else if (user.role !== "admin") {
               return responseUtils.forbidden(response);
             } else {
-            return responseUtils.sendJson(response, getAllUsers());
+              return responseUtils.sendJson(response, users);
             }
           }
     );
@@ -175,27 +220,28 @@ const handleRequest = async(request, response) => {
       return responseUtils.badRequest(response, 'Invalid Content-Type. Expected application/json');
     }
 
-    // TODO: 8.4 Implement registration
+    // Implement registration
     // You can use parseBodyJson(request) method from utils/requestUtils.js to parse request body.
-    // Useful methods here include:
-    // - validateUser(user) from /utils/users.js 
-    // - emailInUse(user.email) from /utils/users.js
-    // - badRequest(response, message) from /utils/responseUtils.js
-    parseBodyJson(request).then(body => {
-      const errors = validateUser(body);
-      const validEmail = emailInUse(body.email);
-      if (errors.length !== 0) {
-        return responseUtils.badRequest(response, 'Missing information');
-      } else if (validEmail) {
-        return responseUtils.badRequest(response, 'Email is already in use');
-      } else {
-        body.role = "customer";
-        const user = saveNewUser(body);
-        response.writeHead(201, { 'Content-Type': 'application/json' });
-        return response.end(JSON.stringify(user));
-      }
-    });
-    // throw new Error('Not Implemented');
+    const body = await parseBodyJson(request);
+    const errors = validateUser(body);
+    const validEmail = await User.findOne({email: body.email}).exec();
+    if (errors.length !== 0) {
+      return responseUtils.badRequest(response, 'Missing information');
+    } else if (validEmail) {
+      return responseUtils.badRequest(response, 'Email is already in use');
+    } else {
+      // Create a new user
+      const userData = {
+        name: body.name,
+        email: body.email,
+        password: body.password,
+        role: "customer",
+      };
+
+      const newUser = new User(userData);
+      await newUser.save();
+      return responseUtils.createdResource(response, newUser);
+    }
   }
 
   // GET all products (only allowed for authenticated user)

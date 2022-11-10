@@ -76,9 +76,6 @@ jspm_packages/
 # Output of 'npm pack'
 *.tgz
 
-# dotenv environment variables file
-.env
-
 # VS Code
 .vscode/*
 !.vscode/settings.json

@@ -1,3 +1,4 @@
+const http = require("http");
 /**
  * Decode, parse and return user credentials (username and password)
  * from the Authorization header.
@@ -11,7 +12,7 @@ const getCredentials = request => {
   //       You need to first decode the header back to its original form ("email:password").
   //  See: https://attacomsian.com/blog/nodejs-base64-encode-decode
   //       https://stackabuse.com/encoding-and-decoding-base64-strings-in-node-js/
-  const authheader = request.headers.authorization;
+  const authheader = request.headers["authorization"];
   if (! authheader | authheader === "") {
     return null;
   } else if (authheader.split(' ')[0] !== "Basic") {
