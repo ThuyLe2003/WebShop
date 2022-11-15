@@ -33,9 +33,9 @@ const placeOrder = async() => {
   // show the user a notification: /public/js/utils.js provides createNotification = (message, containerId, isSuccess = true)
   // for each of the products in the cart remove them, /public/js/utils.js provides removeElement(containerId, elementId)
   let products = getAllProductsFromCart();
-  for(let product in products) {
+  products.forEach(product => {
     removeElement("cart-container", product.id);
-  };
+  })
   clearCart();
   createNotification("Successfully created an order!", "notifications-container");
 }
