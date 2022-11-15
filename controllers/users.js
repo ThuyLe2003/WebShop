@@ -4,21 +4,35 @@ const User = require("../models/user");
 const roles = ["customer", "admin"];
 
 /**
- * Validate user object (Very simple and minimal validation)
+ * Verify the email match with normal email pattern sth@sth.sth (sth is something)
  *
- * This function can be used to validate that user has all required
- * fields before saving it.
- *
- * @param {Object} user user object to be validated
- * @returns {Array<string>} Array of error messages or empty array if user is valid. 
+ * @param {string} email The email to validate.
+ * @returns {boolean} True if the email match the requirement, false otherwise.
  */
- const validateUser = user => {
+ const validateEmail = (email) => {
+  return String(email)
+    .toLowerCase()
+    .match(
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    );
+};
+
+/**
+ * Validate (authenticate) the user match with user in the database including: email, name, password
+ *
+ * @param {object} user The user we need to validate.
+ * @returns {boolean} True if the user match the structure and exist in the database, false otherwise.
+ */
+const validateUser = (user) => {
   const errors = [];
 
-  if (!user.name) errors.push('Missing name');
-  if (!user.email) errors.push('Missing email');
-  if (!user.password) errors.push('Missing password');
-  if (user.role && !roles.includes(user.role)) errors.push('Unknown role');
+  if (!validateEmail(user.email)) errors.push("Invalid email");
+  if (user.email === undefined) errors.push("Missing email");
+  if (user.name === undefined) errors.push("Missing name");
+  if (user.password === undefined) {
+    errors.push("Missing password");
+  }
+  if (String(user.password).length < 10) errors.push("Password too short");
 
   return errors;
 };
