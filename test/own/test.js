@@ -5,14 +5,6 @@ const chaiHttp = require('chai-http');
 chai.use(chaiHttp);
 
 describe('Routes', () => {
-  let allUsers;
-
-  beforeEach(async () => {
-    await User.deleteMany({});
-    await User.create(users);
-    allUsers = await User.find({});
-  });
-
   describe('handleRequest()', () => {
     describe('Registration: POST /api/register', () => {
       it('As a user, I want to register to the system.', async () => {
