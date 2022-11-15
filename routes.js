@@ -1,31 +1,11 @@
 const responseUtils = require('./utils/responseUtils');
-const { acceptsJson, isJson, parseBodyJson, getCredentials } = require('./utils/requestUtils');
+const { acceptsJson, isJson, parseBodyJson } = require('./utils/requestUtils');
 const { renderPublic } = require('./utils/render');
 const { getCurrentUser } = require('./auth/auth');
-const User = require('./models/user');
+const { getAllUsers, registerUser, deleteUser, viewUser, updateUser } = require('./controllers/users');
+const { getAllProducts } = require('./controllers/products');
+
 const http = require("http");
-
-const roles = ["customer", "admin"];
-
-/**
- * Validate user object (Very simple and minimal validation)
- *
- * This function can be used to validate that user has all required
- * fields before saving it.
- *
- * @param {Object} user user object to be validated
- * @returns {Array<string>} Array of error messages or empty array if user is valid. 
- */
- const validateUser = user => {
-  const errors = [];
-
-  if (!user.name) errors.push('Missing name');
-  if (!user.email) errors.push('Missing email');
-  if (!user.password) errors.push('Missing password');
-  if (user.role && !roles.includes(user.role)) errors.push('Unknown role');
-
-  return errors;
-};
 
 /**
  * Known API routes and their allowed methods
@@ -39,11 +19,6 @@ const allowedMethods = {
   '/api/products': ['GET'],
   '/api/cart' : ['GET']
 };
-
-/**
- * Use this object to store products
- */
-const products = require('./products.json').map(product => ({...product }));
 
 /**
  * Send response to client options request.
@@ -152,28 +127,17 @@ const handleRequest = async(request, response) => {
     if (headerCheck !== null) {
       return headerCheck;
     }
-    const view = await User.findById(id).exec();
-    if (view === null) {
-      return responseUtils.notFound(response);
-    }
+    const currentUser = await getCurrentUser(request);
 
     if (method.toUpperCase() === 'GET') {
-      return responseUtils.sendJson(response, view);
+      return viewUser(response, id, currentUser);
         
     } else if (method.toUpperCase() === 'PUT') {
-      const userChangeRole = await parseBodyJson(request);
-      const roleToChange = userChangeRole.role;
-      if (roles.includes(roleToChange)) {
-        view.role = roleToChange;
-        await view.save();
-        return responseUtils.sendJson(response, view);
-      } else {
-        return responseUtils.badRequest(response, 'Missing or unvalid role');
-      }
+      const userData = await parseBodyJson(request);
+      return updateUser(response, id, currentUser, userData);
           
     } else if (method.toUpperCase() === 'DELETE') {
-      await User.deleteOne({_id: id});
-      return responseUtils.sendJson(response, view);
+      return deleteUser(response, id, currentUser);
           
     } else if (method.toUpperCase() === "OPTIONS") {
       return sendOptions(filePath, response);
@@ -199,15 +163,13 @@ const handleRequest = async(request, response) => {
   // GET all users
   if (filePath === '/api/users' && method.toUpperCase() === 'GET') {
     // Add authentication (only allowed to users with role "admin")
-    const users = await User.find({});
-
     getCurrentUser(request).then(user => {
       if (user === null) {
         return responseUtils.basicAuthChallenge(response);
       } else if (user.role !== "admin") {
               return responseUtils.forbidden(response);
             } else {
-              return responseUtils.sendJson(response, users);
+              return getAllUsers(response);
             }
           }
     );
@@ -222,26 +184,9 @@ const handleRequest = async(request, response) => {
 
     // Implement registration
     // You can use parseBodyJson(request) method from utils/requestUtils.js to parse request body.
-    const body = await parseBodyJson(request);
-    const errors = validateUser(body);
-    const validEmail = await User.findOne({email: body.email}).exec();
-    if (errors.length !== 0) {
-      return responseUtils.badRequest(response, 'Missing information');
-    } else if (validEmail) {
-      return responseUtils.badRequest(response, 'Email is already in use');
-    } else {
-      // Create a new user
-      const userData = {
-        name: body.name,
-        email: body.email,
-        password: body.password,
-        role: "customer",
-      };
-
-      const newUser = new User(userData);
-      await newUser.save();
-      return responseUtils.createdResource(response, newUser);
-    }
+    const userData = await parseBodyJson(request);
+    return registerUser(response, userData);
+    
   }
 
   // GET all products (only allowed for authenticated user)
@@ -250,7 +195,7 @@ const handleRequest = async(request, response) => {
       if (user === null) {
         return responseUtils.basicAuthChallenge(response);
       } else {
-        return responseUtils.sendJson(response, products);
+        return getAllProducts(response);
       }
     })
     }
