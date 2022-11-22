@@ -64,10 +64,10 @@ const deleteUser = async(response, userId, currentUser) => {
   if (userToDelete === null) {
     return responseUtils.notFound(response);
   }
-  if (String(userId) === String(currentUser["_id"])) {
+  if (String(userId) === String(currentUser._id)) {
     return responseUtils.badRequest(response, "Bad Request");
   }
-  await User.deleteOne({ _id: userId }).exec();
+  await User.deleteOne({ _id: userId });
   return responseUtils.sendJson(response, userToDelete);
 };
 
@@ -85,19 +85,19 @@ const updateUser = async(response, userId, currentUser, userData) => {
     return responseUtils.notFound(response);
   }
 
-  if (String(userId) === String(currentUser["_id"])) {
+  if (String(userId) === String(currentUser._id)) {
     return responseUtils.badRequest(response, "Updating own data is not allowed");
   }
 
-  if (userData["role"] === undefined) {
+  if (userData.role === undefined) {
     return responseUtils.badRequest(response, "Bad Request");
   }
 
-  if (!roles.includes(userData["role"])) {
+  if (!roles.includes(userData.role)) {
     return responseUtils.badRequest(response, "Bad Request");
   }
 
-  userToUpdate["role"] = userData["role"];
+  userToUpdate.role = userData["role"];
   await userToUpdate.save();
   return responseUtils.sendJson(response, userToUpdate);
 };
@@ -110,7 +110,7 @@ const updateUser = async(response, userId, currentUser, userData) => {
  * @param {Object} currentUser (mongoose document object)
  */
 const viewUser = async(response, userId, currentUser) => {
-  const user = await User.findById(userId);
+  const user = await User.findById(userId).exec();
   if (user === null) {
     return responseUtils.notFound(response);
   }
