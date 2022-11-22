@@ -392,11 +392,11 @@ const handleRequest = async(request, response) => {
     }
 
     return responseUtils.sendJson(response, order);
-  };
+  }
 
   // Cart
   if (filePath === '/api/cart' && method.toUpperCase() === "GET") {
     return getAllProducts(response);
   }
-}
+};
 module.exports = { handleRequest };

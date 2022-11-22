@@ -29,7 +29,7 @@ const viewProduct = async (response, id) => {
   }
 
   return responseUtils.sendJson(response, product);
-}
+};
 
 /**
  * Update product and send updated product as JSON
@@ -46,7 +46,7 @@ const viewProduct = async (response, id) => {
 
   const {name, price, image, description} = data;
   if (name === " " || isNaN(price) || price === 0 || price <= 0) {
-    return responseUtils.badRequest(response, "Bad request")
+    return responseUtils.badRequest(response, "Bad request");
   }
   
   product.name = name;
