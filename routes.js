@@ -105,6 +105,14 @@ const checkHeader = async (request, response, checkCustomer) => {
   return null;
 };
 
+const checkAccept = async (request, response) => {
+  const acceptHeader = request.headers["accept"];
+  if (acceptHeader === undefined || !acceptHeader.split("/").includes("json")) {
+    return responseUtils.contentTypeNotAcceptable(response);
+  }
+
+  return null;
+}
 
 const handleRequest = async(request, response) => {
   const { url, method, headers } = request;
@@ -127,6 +135,12 @@ const handleRequest = async(request, response) => {
     if (headerCheck !== null) {
       return headerCheck;
     }
+    
+    const acceptCheck = await checkAccept(request, response);
+    if (acceptCheck !== null) {
+      return acceptCheck;
+    }
+
     const currentUser = await getCurrentUser(request);
 
     if (method.toUpperCase() === 'GET') {
@@ -163,6 +177,11 @@ const handleRequest = async(request, response) => {
   // GET all users
   if (filePath === '/api/users' && method.toUpperCase() === 'GET') {
     // Add authentication (only allowed to users with role "admin")
+    const headerCheck = await checkHeader(request, response, true);
+    if (headerCheck !== null) {
+      return headerCheck;
+    }
+  
     getCurrentUser(request).then(user => {
       if (user === null) {
         return responseUtils.basicAuthChallenge(response);
