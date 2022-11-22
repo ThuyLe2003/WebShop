@@ -7,7 +7,7 @@ const addToCart = (productId, productName) => {
 };
 
 (async() => {
-  //TODO 9.2 
+  // DONE 9.2 
   // - get the 'products-container' element from the /products.html
   // - get the 'product-template' element from the /products.html
   // - save the response from await getJSON(url) to get all the products. getJSON(url) is available to this script in products.html, as "js/utils.js" script has been added to products.html before this script file 
@@ -16,32 +16,42 @@ const addToCart = (productId, productName) => {
   //    * add product information to the template clone
   //    * remember to add an event listener for the button's 'click' event, and call addToCart() in the event listener's callback
   // - remember to add the products to the the page
-  const container = document.getElementById("products-container");
-  const template = document.getElementById("product-template");
+  const baseContainer = document.querySelector("#products-container");
+  const productTemplate = document.querySelector("#product-template");
 
-  getJSON("/api/products").then((products) => {
+  try {
+    console.log("Attempting to get Json products");
+    const products = await getJSON("/api/products");
+    console.log("Got all the products");
+    if (products.length === 0) {
+      const p = document.createElement('p');
+      p.textContent = 'No products';
+      baseContainer.append(p);
+      return;
+    }
     products.forEach(product => {
-      const prod = template.content.cloneNode(true);
+      const {_id: id, name, description, price} = product;
+        const productContainer = productTemplate.content.cloneNode(true);
 
-      prod.querySelector('.product-name').textContent = product.name;
-      prod.querySelector('.product-name').id = `name-${product._id}`;
+        productContainer.querySelector('h3').id = `name-${id}`;
+        productContainer.querySelector('h3').textContent = name;
+        productContainer.querySelector('.product-description').id = `description-${id}`;
+        productContainer.querySelector('.product-description').textContent = description;
+        productContainer.querySelector('.product-price').id = `price-${id}`;
+        productContainer.querySelector('.product-price').textContent = price;
 
-      prod.querySelector('.product-description').innerText = product.description;
-      prod.querySelector('.product-description').id = `description-${product._id}`;
+        productContainer.querySelector('button').id = `add-to-cart-${id}`;
+        productContainer.querySelector('button').addEventListener('click', () => addToCart(id, name));
 
-      prod.querySelector('.product-price').innerText = product.price;
-      prod.querySelector('.product-price').id = `price-${product._id}`;
-
-      prod.id = product._id;
-
-      prod.querySelector("button").id = `add-to-cart-${product._id}`;
-      prod.querySelector("button").addEventListener('click', () => {
-        addToCart(product._id, product.name);
-      })
-      
-      container.appendChild(prod);
-    });
-      
-    })
-
+        baseContainer.appendChild(productContainer);
+    });    
+  } catch (error) {
+    console.log(error);
+    console.error(error);
+    createNotification(
+      'There was an error while fetching products',
+      'notifications-container',
+      false
+    );
+  }
 })();

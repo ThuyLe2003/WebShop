@@ -80,7 +80,7 @@ const deleteUser = async(response, userId, currentUser) => {
  * @param {Object} userData JSON data from request body
  */
 const updateUser = async(response, userId, currentUser, userData) => {
-  const userToUpdate = await User.findById(userId);
+  const userToUpdate = await User.findById(userId).exec();
   if (userToUpdate === null) {
     return responseUtils.notFound(response);
   }
@@ -97,7 +97,7 @@ const updateUser = async(response, userId, currentUser, userData) => {
     return responseUtils.badRequest(response, "Bad Request");
   }
 
-  userToUpdate.role = userData["role"];
+  userToUpdate.role = userData.role;
   await userToUpdate.save();
   return responseUtils.sendJson(response, userToUpdate);
 };

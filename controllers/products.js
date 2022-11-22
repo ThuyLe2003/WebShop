@@ -10,7 +10,7 @@ const getAllProducts = async (response, request) => {
   try {
     const products = await Product.find({});
     const allProd = products.map((product) => ({
-      _id: product.id,
+      _id: product._id,
       name: product.name,
       price: product.price,
       image: product.image,

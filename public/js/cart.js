@@ -9,7 +9,7 @@ const addToCart = productId => {
 const decreaseCount = productId => {
   // TODO 9.2
   // Decrease the amount of products in the cart, /public/js/utils.js provides decreaseProductCount()
-  // Remove product from cart if amount is 0,  /public/js/utils.js provides removeElement = (containerId, elementId)
+  // Remove product from cart if amount is 0,  /public/js/utils.js provides removeElement = (containerId, elementId
   const count = decreaseProductCount(productId);
   updateProductAmount(productId);
   if (parseInt(count) === 0) { 
@@ -21,9 +21,9 @@ const updateProductAmount = productId => {
   // TODO 9.2
   // - read the amount of products in the cart, /public/js/utils.js provides getProductCountFromCart(productId)
   // - change the amount of products shown in the right element's innerText
-  let count = getProductCountFromCart(productId);
-  document.getElementById(`amount-${productId}`).textContent = `${count}x`;
-
+  const count = getProductCountFromCart(productId);
+  const amountShow = document.querySelector(`#amount-${productId}`);
+  amountShow.textContent = `${count}x`;
 };
 
 const placeOrder = async() => {
@@ -31,17 +31,16 @@ const placeOrder = async() => {
   // Get all products from the cart, /public/js/utils.js provides getAllProductsFromCart()
   // show the user a notification: /public/js/utils.js provides createNotification = (message, containerId, isSuccess = true)
   // for each of the products in the cart remove them, /public/js/utils.js provides removeElement(containerId, elementId)
-  let products = getAllProductsFromCart();
-  products.forEach(product => {
-    removeElement("cart-container", product.id);
-  })
+  const allProducts = getAllProductsFromCart();
   createNotification("Successfully created an order!", "notifications-container");
-  clearCart();
-}
+  allProducts.map((product) => {
+    let {name:id} = product;
+    removeElement('cart-container', id);
 
-document.getElementById("place-order-button").addEventListener("click", () => {
-  placeOrder().then(document.location.reload());
-});
+  })
+ 
+  clearCart();
+};
 
 (async() => {
   // TODO 9.2
@@ -66,7 +65,7 @@ document.getElementById("place-order-button").addEventListener("click", () => {
   //          clone.querySelector('button').id = `add-to-cart-${prodouctId}`;
   //          clone.querySelector('button').addEventListener('click', () => addToCart(productId, productName));
   //
-  // - in the end remember to append the modified cart item to the cart
+  // - in the end remember to append the modified cart item to the cart 
   const cartContainer = document.querySelector("#cart-container");
 
   const products = await getJSON("/api/products");
@@ -101,4 +100,7 @@ document.getElementById("place-order-button").addEventListener("click", () => {
         cartContainer.appendChild(clone);
 
   })
+  // for (const product of productsFromCart) {
+    
+  // };
 })();

@@ -1,29 +1,27 @@
-/**
- * TODO: 8.4 Register new user
- *       - Handle registration form submission
- *       - Prevent registration when password and passwordConfirmation do not match
- *       - Use createNotification() function from utils.js to show user messages of
- *       - error conditions and successful registration
- *       - Reset the form back to empty after successful registration
- *       - Use postOrPutJSON() function from utils.js to send your data back to server
- */
+const  comparePasswords = (p1, p2) => {
+  return p1 === p2;
+};
 
-document.getElementById("btnRegister").addEventListener("click", (event) => {
-    
-    let pass = document.getElementById("password").value;
-    let passcf = document.getElementById("passwordConfirmation").value;
-    let name = document.getElementById("name").value;
-    let email = document.getElementById("email").value;
-    let form = document.getElementById("register-form");
-    if (pass.length < 10) {
-        createNotification("The password requires at least 10 characters", "notifications-container", false);
-    } else if (pass !== passcf) {
-        createNotification("The password confirmation does not match", "notifications-container", false);
-    } else if (name !== "" && email !== "") {
-        event.preventDefault();
-        let newUser = {"name": name, "email": email, "password": pass};
-        postOrPutJSON('http://localhost:3000/api/register', 'POST', newUser);
-        createNotification("Successful registration", "notifications-container", true);
-        form.reset();
-    }
-})
+// DONE: 8.4 Handle user registration UI
+document.querySelector('#btnRegister').addEventListener('click', (event) => {
+  event.preventDefault();
+
+  // Validate password
+  const password = document.querySelector('#password')
+  const passwordConfirmation = document.querySelector('#passwordConfirmation')
+  if (!comparePasswords(password.value, passwordConfirmation.value)) {
+      const container = passwordConfirmation.parentNode;
+      container.id = "pswd-confirmation-container";
+      createNotification('Passwords do not match', container.id, false);
+  } else {
+    // Same passwords => create new user
+    const form = document.querySelector('#register-form');
+    const formData = new FormData(form);
+    const data = {};
+    formData.forEach(function(value, key) {
+        data[key] = value;
+    })
+    postOrPutJSON('/api/register','POST', data);
+  }
+
+});
