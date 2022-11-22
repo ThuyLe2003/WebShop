@@ -216,16 +216,9 @@ const handleRequest = async(request, response) => {
       return headerCheck;
     }
   
-    getCurrentUser(request).then(user => {
-      if (user === null) {
-        return responseUtils.basicAuthChallenge(response);
-      } else if (user.role !== "admin") {
-              return responseUtils.forbidden(response);
-            } else {
-              return getAllUsers(response);
-            }
-          }
-    );
+    if (currentUser.role === "admin") {
+      return getAllUsers(response);
+    }
   }  
 
   // register new user

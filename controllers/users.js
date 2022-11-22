@@ -93,7 +93,7 @@ const updateUser = async(response, userId, currentUser, userData) => {
     return responseUtils.badRequest(response, "Bad Request");
   }
 
-  if (!roles.includes(userData.role)) {
+  if (!roles.includes(userData.role) || userData.role === undefined) {
     return responseUtils.badRequest(response, "Bad Request");
   }
 
