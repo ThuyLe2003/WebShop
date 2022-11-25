@@ -466,6 +466,7 @@ describe('Routes', () => {
           .set('Accept', contentType)
           .set('Authorization', `Basic ${adminCredentials}`);
 
+
         expect(response).to.have.status(200);
         expect(response).to.be.json;
         expect(response.body).to.be.an('object');
