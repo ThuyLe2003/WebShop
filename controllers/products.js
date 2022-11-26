@@ -6,7 +6,7 @@ const responseUtils = require("../utils/responseUtils");
  *
  * @param {http.ServerResponse} response
  */
-const getAllProducts = async (response, request) => {
+const getAllProducts = async (response) => {
   try {
     const products = await Product.find({});
     const allProd = products.map((product) => ({
@@ -45,7 +45,7 @@ const viewProduct = async (response, id) => {
   }
 
   const {name, price, image, description} = data;
-  if (name === " " || isNaN(price) || price === 0 || price <= 0) {
+  if (name === " " || isNaN(price) || price <= 0) {
     return responseUtils.badRequest(response, "Bad request");
   }
   

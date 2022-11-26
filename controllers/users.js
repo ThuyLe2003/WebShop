@@ -45,11 +45,7 @@ const validateUser = (user) => {
  */
 const getAllUsers = async response => {
   const users = await User.find({});
-  try {
-    return responseUtils.sendJson(response, users);
-  } catch (err) {
-    console.log(err);
-  }
+  responseUtils.sendJson(response, users);
 };
 
 /**
@@ -67,7 +63,7 @@ const deleteUser = async(response, userId, currentUser) => {
   if (String(userId) === String(currentUser._id)) {
     return responseUtils.badRequest(response, "Bad Request");
   }
-  await User.deleteOne({ _id: userId });
+  await User.deleteOne({ _id: userId }).exec();
   return responseUtils.sendJson(response, userToDelete);
 };
 
