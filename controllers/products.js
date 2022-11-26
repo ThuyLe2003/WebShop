@@ -4,7 +4,7 @@ const responseUtils = require("../utils/responseUtils");
 /**
  * Send all products as JSON
  *
- * @param {http.ServerResponse} response
+ * @param {http.ServerResponse} response response of server
  */
 const getAllProducts = async (response) => {
   const products = await Product.find({});
@@ -30,9 +30,9 @@ const viewProduct = async (response, id) => {
 /**
  * Update product and send updated product as JSON
  *
- * @param {http.ServerResponse} response
- * @param {string} id
- * @param {Object} data JSON data from request body
+ * @param {http.ServerResponse} response response of server
+ * @param {string} id url id for the product
+ * @param {object} data JSON data from request body
  */
  const updateProduct = async(response, id, data) => {
   const product = await Product.findById(id).exec();

@@ -27,7 +27,7 @@ const allowedMethods = {
  * Send response to client options request.
  *
  * @param {string} filePath pathname of the request URL
- * @param {http.ServerResponse} response
+ * @param {http.ServerResponse} response response of server
  */
 const sendOptions = (filePath, response) => {
   if (filePath in allowedMethods) {
@@ -47,8 +47,8 @@ const sendOptions = (filePath, response) => {
  * Does the url have an ID component as its last part? (e.g. /api/users/dsf7844e)
  *
  * @param {string} url filePath
- * @param {string} prefix
- * @returns {boolean}
+ * @param {string} prefix prefix of the url
+ * @returns {boolean} if the url match the pattern or not
  */
 const matchIdRoute = (url, prefix) => {
   const idPattern = '[0-9a-z]{8,24}';
@@ -60,7 +60,7 @@ const matchIdRoute = (url, prefix) => {
  * Does the URL match /api/users/{id}
  *
  * @param {string} url filePath
- * @returns {boolean}
+ * @returns {boolean} if the url match the pattern or not
  */
 const matchUserId = url => {
   return matchIdRoute(url, 'users');
@@ -70,7 +70,7 @@ const matchUserId = url => {
  * Does the URL match /api/products/{id}
  *
  * @param {string} url filePath
- * @returns {boolean}
+ * @returns {boolean} if the url match the pattern or not
  */
 const matchProductId = url => {
   return matchIdRoute(url, 'products');
@@ -80,7 +80,7 @@ const matchProductId = url => {
  * Does the URL match /api/orders/{id}
  *
  * @param {string} url filePath
- * @returns {boolean}
+ * @returns {boolean} if the url match the pattern or not
  */
 const matchOrderId = url => {
   return matchIdRoute(url, 'orders');

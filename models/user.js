@@ -90,7 +90,7 @@ const userSchema = new Schema({
 /**
  * Compare supplied password with user's own (hashed) password
  *
- * @param {string} password
+ * @param {string} password password of the user
  * @returns {Promise<boolean>} promise that resolves to the comparison result
  */
 userSchema.methods.checkPassword = async function(password) {

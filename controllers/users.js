@@ -40,7 +40,7 @@ const validateUser = (user) => {
 /**
  * Send all users as JSON
  *
- * @param {http.ServerResponse} response
+ * @param {http.ServerResponse} response response of server
  * @returns {http.ServerResponse} The response contains all users in JSON format.
  */
 const getAllUsers = async response => {
@@ -51,9 +51,9 @@ const getAllUsers = async response => {
 /**
  * Delete user and send deleted user as JSON
  *
- * @param {http.ServerResponse} response
- * @param {string} userId
- * @param {Object} currentUser (mongoose document object)
+ * @param {http.ServerResponse} response response of server
+ * @param {string} userId id of user to be deleted
+ * @param {object} currentUser (mongoose document object)
  */
 const deleteUser = async(response, userId, currentUser) => {
   const userToDelete = await User.findById(userId).exec();
@@ -70,10 +70,10 @@ const deleteUser = async(response, userId, currentUser) => {
 /**
  * Update user and send updated user as JSON
  *
- * @param {http.ServerResponse} response
- * @param {string} userId
- * @param {Object} currentUser (mongoose document object)
- * @param {Object} userData JSON data from request body
+ * @param {http.ServerResponse} response response of server
+ * @param {string} userId id of user to be updated
+ * @param {object} currentUser (mongoose document object)
+ * @param {object} userData JSON data from request body
  */
 const updateUser = async(response, userId, currentUser, userData) => {
   const userToUpdate = await User.findById(userId).exec();
@@ -101,9 +101,9 @@ const updateUser = async(response, userId, currentUser, userData) => {
 /**
  * Send user data as JSON
  *
- * @param {http.ServerResponse} response
- * @param {string} userId
- * @param {Object} currentUser (mongoose document object)
+ * @param {http.ServerResponse} response response of server
+ * @param {string} userId id of user to be viewed
+ * @param {object} currentUser (mongoose document object)
  */
 const viewUser = async(response, userId, currentUser) => {
   const user = await User.findById(userId).exec();
@@ -117,8 +117,8 @@ const viewUser = async(response, userId, currentUser) => {
 /**
  * Register new user and send created user back as JSON
  *
- * @param {http.ServerResponse} response
- * @param {Object} userData JSON data from request body
+ * @param {http.ServerResponse} response response of server
+ * @param {object} userData JSON data from request body
  */
 const registerUser = async(response, userData) => {
   const errors = validateUser(userData);

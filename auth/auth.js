@@ -5,8 +5,8 @@ const User = require('../models/user');
 /**
  * Get current user based on the request headers
  *
- * @param {http.IncomingMessage} request
- * @returns {Object|null} current authenticated user or null if not yet authenticated
+ * @param {http.IncomingMessage} request request from server
+ * @returns {object|null} current authenticated user or null if not yet authenticated
  */
 const getCurrentUser = async request => {
   // Implement getting current user based on the "Authorization" request header
