@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
+const SALT_ROUNDS = 10;
+
 const productSchema = new Schema({
   name: {
     type: String,

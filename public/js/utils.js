@@ -229,7 +229,4 @@ const clearCart = () => {
   sessionStorage.clear();
 };
 
-module.exports = {
-  createNotification,
-  postOrPutJSON,
-};
+module.exports = {createNotification, postOrPutJSON};

@@ -7,19 +7,15 @@ const responseUtils = require("../utils/responseUtils");
  * @param {http.ServerResponse} response
  */
 const getAllProducts = async (response) => {
-  try {
-    const products = await Product.find({});
-    const allProd = products.map((product) => ({
-      _id: product._id,
-      name: product.name,
-      price: product.price,
-      image: product.image,
-      description: product.description
-    }));
-    return responseUtils.sendJson(response, allProd);
-  } catch (err) {
-    console.log(err);
-  }
+  const products = await Product.find({});
+  const allProd = products.map((product) => ({
+    _id: product._id,
+    name: product.name,
+    price: product.price,
+    image: product.image,
+    description: product.description
+  }));
+  return responseUtils.sendJson(response, allProd, 200);
 };
 
 const viewProduct = async (response, id) => {
