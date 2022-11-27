@@ -8,14 +8,7 @@ const responseUtils = require("../utils/responseUtils");
  */
 const getAllProducts = async (response) => {
   const products = await Product.find({});
-  const allProd = products.map((product) => ({
-    _id: product._id,
-    name: product.name,
-    price: product.price,
-    image: product.image,
-    description: product.description
-  }));
-  return responseUtils.sendJson(response, allProd, 200);
+  return responseUtils.sendJson(response, products);
 };
 
 const viewProduct = async (response, id) => {

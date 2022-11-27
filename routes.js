@@ -6,6 +6,7 @@ const { getAllUsers, registerUser, deleteUser, viewUser, updateUser } = require(
 const { getAllProducts, viewProduct, updateProduct, deleteProduct } = require('./controllers/products');
 
 const http = require("http");
+const User = require('./models/user');
 const Order = require('./models/order');
 const Product = require('./models/product');
 
@@ -220,7 +221,9 @@ const handleRequest = async(request, response) => {
     }
   
     if (currentUser.role === "admin") {
-      return getAllUsers(response);
+      // const users = await User.find({});
+      // return responseUtils.sendJson(response, users);
+      return await getAllUsers(response);
     }
   }  
 
@@ -277,7 +280,9 @@ const handleRequest = async(request, response) => {
 
     // Get all products
     if (method.toUpperCase() === "GET") {
-      return getAllProducts(response);
+      // const products = await Product.find({});
+      // return responseUtils.sendJson(response, products);
+      return await getAllProducts(response);
     }
 
     // Create new product
