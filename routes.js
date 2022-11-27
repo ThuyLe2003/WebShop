@@ -221,9 +221,9 @@ const handleRequest = async(request, response) => {
     }
   
     if (currentUser.role === "admin") {
-      // const users = await User.find({});
-      // return responseUtils.sendJson(response, users);
-      return await getAllUsers(response);
+      const users = await User.find({});
+      return responseUtils.sendJson(response, users);
+      // return await getAllUsers(response);
     }
   }  
 
