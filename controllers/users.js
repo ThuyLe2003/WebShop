@@ -45,7 +45,7 @@ const validateUser = (user) => {
  */
 const getAllUsers = async response => {
   const users = await User.find({});
-  responseUtils.sendJson(response, users);
+  return responseUtils.sendJson(response, users);
 };
 
 /**
