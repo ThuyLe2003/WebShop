@@ -85,10 +85,6 @@ const updateUser = async(response, userId, currentUser, userData) => {
     return responseUtils.badRequest(response, "Updating own data is not allowed");
   }
 
-  if (userData.role === undefined) {
-    return responseUtils.badRequest(response, "Bad Request");
-  }
-
   if (!roles.includes(userData.role) || userData.role === undefined) {
     return responseUtils.badRequest(response, "Bad Request");
   }
