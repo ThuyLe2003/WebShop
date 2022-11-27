@@ -6,11 +6,8 @@ const { getAllUsers, registerUser, deleteUser, viewUser, updateUser } = require(
 const { getAllProducts, viewProduct, updateProduct, deleteProduct } = require('./controllers/products');
 
 const http = require("http");
-const User = require('./models/user');
 const Order = require('./models/order');
 const Product = require('./models/product');
-
-const roles = ["customer", "admin"];
 
 /**
  * Known API routes and their allowed methods
@@ -199,27 +196,10 @@ const handleRequest = async(request, response) => {
         
     } else if (method.toUpperCase() === 'PUT') {
       const userData = await parseBodyJson(request);
-      const newRole = userData.role;
-      if (!roles.includes(newRole) || newRole === undefined) {
-        return responseUtils.badRequest(response, "Bad Request");
-      }
-
-      const userToUpdate = await User.findById(id).exec();
-      if (userToUpdate === null) {
-        return responseUtils.notFound(response);
-      }
-
-      userToUpdate.role = newRole;
-      await userToUpdate.save()
-      return responseUtils.sendJson(response, userToUpdate);
+      return updateUser(response, id, currentUser, userData);
           
     } else if (method.toUpperCase() === 'DELETE') {
-      const userToDelete = await User.findById(id).exec();
-      if (userToDelete === null) {
-        return responseUtils.notFound(response);
-      }
-      await User.deleteOne({ _id: id});
-      return responseUtils.sendJson(response, userToDelete);
+      return deleteUser(response, id, currentUser);
           
     } else if (method.toUpperCase() === "OPTIONS") {
       return sendOptions(filePath, response);
@@ -241,8 +221,7 @@ const handleRequest = async(request, response) => {
     }
   
     if (currentUser.role === "admin") {
-      const users = await User.find({});
-      return responseUtils.sendJson(response, users);
+      return getAllUsers(response);
     }
   }  
 
